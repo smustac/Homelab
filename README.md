@@ -57,6 +57,7 @@ I added Cockpit to be allowed past the firewall and made sure that SSH had perma
 To add SSH and Cockpit permanently i used:
 
 sudo firewall-cmd --zone=public --add-service=cockpit --permanent
+
 sudo firewall-cmd --zone=public --add-service=ssh --permanent
 
 and then to reload and refresh the privlidges:
