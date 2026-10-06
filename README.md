@@ -71,6 +71,7 @@ All attacks will be directed from a kali VM on my local PC.
 The point of the attacks is to serve as an actual test of the setup, whether they succeed or not if they are properly executed the test is valid and so are the results.
 
 <h2> Recon </h2>
+
 I first nampped the server:
 
 <img width="626" height="207" alt="image" src="https://github.com/user-attachments/assets/edb37b4a-b711-4d8e-80c0-9687ff05ee2c" />
