@@ -64,6 +64,8 @@ and then to reload and refresh the privlidges:
 
 sudo firewall-cmd --reload
 
+To access the Cockpit interface i simply went to the https://192.168.1.8:9090 URL.
+
 <h1> Attacks </h1>
 
 Here i will go over any current and future attacks that i attempt on the server.
