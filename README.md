@@ -90,6 +90,7 @@ In order to test the connection i sent over an Excel file.
 <img width="928" height="55" alt="image" src="https://github.com/user-attachments/assets/9488e757-8301-4039-95b2-f354da089bb4" />
 
 The send command from windows is "scp <filename> smustac@stipinlab:<server_dir>"
+
 Then it arrived on the server and from there it was sent to the laptop using "sudo tailscale file cp <filename> <target_ip>"
 
 <img width="569" height="56" alt="image" src="https://github.com/user-attachments/assets/1592785e-1789-4a7b-9369-03a423457cd7" />
