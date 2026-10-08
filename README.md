@@ -66,6 +66,40 @@ sudo firewall-cmd --reload
 
 To access the Cockpit interface i simply went to the https://192.168.1.8:9090 URL.
 
+<h1> Tailscale and Tailnet setup </h1>
+
+To truly make my server a server I decided to actually make it remotely accessible.
+The easiest way to do so was to use Tailscale. 
+
+On the actual server i simply curled the install script and started the server:
+
+<img width="926" height="835" alt="image" src="https://github.com/user-attachments/assets/7932f0a1-b441-400a-addb-6e35d8125204" />
+
+<img width="432" height="111" alt="image" src="https://github.com/user-attachments/assets/b7cfc4af-0e08-4869-bc21-1a7c40f602e0" />
+
+Using "tailscale status" i can get a look at every device currently in the network.
+
+I connected my PC, server, phone and laptop into the network.
+Also tailscale allows using names instead of IP adresses making the actual command line sending alot easier.
+
+<img width="924" height="78" alt="image" src="https://github.com/user-attachments/assets/16df2e41-e13d-4d3c-a1ed-782f6201fae5" />
+
+In order to test the connection i sent over an Excel file.
+"Trening.xlsx" was sent from my PC to the server and then to my laptop while it was on a different network.
+
+<img width="928" height="55" alt="image" src="https://github.com/user-attachments/assets/9488e757-8301-4039-95b2-f354da089bb4" />
+
+The send command from windows is "scp <filename> smustac@stipinlab:<directory>"
+Then it arrived on the server and from there it was sent to the laptop using "sudo tailscale file cp <filename> <target_ip>"
+
+<img width="569" height="56" alt="image" src="https://github.com/user-attachments/assets/1592785e-1789-4a7b-9369-03a423457cd7" />
+
+The file was retrieved using "tailscale file get . " and appeared in the downloads folder.
+
+I also tested all of the other paths but didnt feel the need to explain all of them since the concept is the same.
+Everything arrived properly proving that the server had perfect remote functionality.
+
+
 <h1> Attacks </h1>
 
 Here i will go over any current and future attacks that i attempt on the server.
