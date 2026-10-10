@@ -161,5 +161,46 @@ To test i once again began the brute-force attack and the IP assigned to the Kal
 
 <img width="534" height="211" alt="image" src="https://github.com/user-attachments/assets/8cb974f6-b8a7-447e-b037-3dc410a926d0" />
 
+<h2> OWASP Juice Shop </h2>
+
+On the server, I set up the OWASP juice shop using docker.
+I bound it directly to the servers LAN IP so Kali VM can reach it easily.
+
+"docker run -d -p 192.168.1.8:3000:3000 --name juice-shop bkimminich/juice-shop"
+
+I also made sure that this time the firewall was prepared and allowed traffic through port 3000.
+
+On the Kali VM i curled the site and got a response so i opened it in the browser.
+To save me the effort later i opened the browser through BurpSuite to be able to intercept at any point.
+
+<img width="957" height="695" alt="image" src="https://github.com/user-attachments/assets/22ed4b83-a299-408f-b0f1-a54a9655751f" />
+
+<h3> Attacks </h3>
+
+The first attack i attempted was a basic SQL injection with " ' OR 1=1-- " which succeeded.
+I was then redirected to the Code Error detection page where i succesfully found the error and the fix to the problem.
+
+<img width="929" height="815" alt="image" src="https://github.com/user-attachments/assets/00081aa9-bcd8-4827-8cc8-df1cca13d08f" />
+
+<img width="905" height="581" alt="image" src="https://github.com/user-attachments/assets/2e7c8833-cd47-4e18-9509-dc3a3c697194" />
+
+<h4> Finding the scoreboard page </h4>
+
+The simple begining. An unprotected path to the page.
+
+<img width="837" height="665" alt="image" src="https://github.com/user-attachments/assets/d52b381d-0574-45a0-a31e-3cb8071195a3" />
+
+<h4> DOM XSS </h4>
+
+Another simple attack. Just an XSS payload in the URL.
+
+<img width="938" height="471" alt="image" src="https://github.com/user-attachments/assets/315ef1ab-9959-4a4d-8820-4d4d10b2d7fa" />
+
+<h4> Web3 Sandbox </h4>
+
+The Web3 sandbox for smart conracts also had an unprotected "/web3-sandbox" path.
+
+<img width="940" height="591" alt="image" src="https://github.com/user-attachments/assets/b5a95664-db2b-443d-8b9a-9afffae945e5" />
+
 
 
