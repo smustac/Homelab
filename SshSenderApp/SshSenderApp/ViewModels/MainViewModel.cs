@@ -137,6 +137,8 @@ public class MainViewModel : ObservableBase
         set
         {
             if (!Set(ref _selectedEntry, value)) return;
+            Raise(nameof(DownloadText));
+            UpdateCommands();
             if (value is { IsDirectory: true })
             {
                 _ = GoToAsync(SshService.Combine(CurrentDir, value.Name));
@@ -175,6 +177,13 @@ public class MainViewModel : ObservableBase
         1 => $"{_files[0].Name}  ({Fmt.Size(_files[0].Size)})",
         _ => $"{_files.Count} files selected  ({Fmt.Size(_files.Sum(f => f.Size))})"
     };
+
+    /// <summary>True when a file (not a folder) is selected in the list.</summary>
+    public bool CanDownload => IsConnected && !IsBusy && SelectedEntry is { IsDirectory: false };
+
+    public string DownloadText => SelectedEntry is { IsDirectory: false } f
+        ? $"⬇ Download \"{f.Name}\"  ({Fmt.Size(f.Size)})"
+        : "⬇ Tap a file in the list to download it";
 
     // ---- called from the view ----
     public void SetFiles(IEnumerable<PickedFile> files)
@@ -303,6 +312,40 @@ public class MainViewModel : ObservableBase
         await LoadEntriesAsync();
     });
 
+    /// <summary>Called from the view after the user picked where to save the file.</summary>
+    public Task DownloadAsync(RemoteEntry entry, Func<Task<Stream>> openDestination) => RunBusy(async () =>
+    {
+        string remotePath = SshService.Combine(CurrentDir, entry.Name);
+        long total = entry.Size;
+        int lastPct = -1;
+
+        Progress = 0;
+        ProgressText = "";
+        Status = $"Downloading {entry.Name}...";
+
+        await using (var stream = await openDestination())
+        {
+            // make sure an existing file is replaced, not partly overwritten
+            try { if (stream.CanSeek) stream.SetLength(0); } catch { /* ignore */ }
+
+            await _ssh.DownloadAsync(remotePath, stream, received =>
+            {
+                int pct = total > 0 ? (int)Math.Min(100, 100.0 * received / total) : 0;
+                if (pct == lastPct) return; // don't flood the UI thread
+                lastPct = pct;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    Progress = pct;
+                    ProgressText = $"{pct}%   ({Fmt.Size(received)} / {Fmt.Size(total)})";
+                });
+            });
+        }
+
+        Progress = 100;
+        ProgressText = "";
+        Status = $"Saved {entry.Name} ({Fmt.Size(total)}).";
+    });
+
     // ---- helpers ----
     private async Task RunBusy(Func<Task> action)
     {
@@ -341,6 +384,7 @@ public class MainViewModel : ObservableBase
         RefreshCommand?.NotifyCanExecuteChanged();
         CreateFolderCommand?.NotifyCanExecuteChanged();
         UploadCommand?.NotifyCanExecuteChanged();
+        Raise(nameof(CanDownload));
     }
 
     // ---- remember host / port / username (never the password) ----

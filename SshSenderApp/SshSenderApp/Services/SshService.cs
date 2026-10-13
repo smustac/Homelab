@@ -110,6 +110,10 @@ public sealed class SshService : IDisposable
     public Task UploadAsync(Stream source, string remotePath, Action<long> progress) => Task.Run(() =>
         Client.UploadFile(source, remotePath, true, done => progress((long)done)));
 
+    /// <summary>Downloads into any writable stream. progress receives total bytes received so far (on a background thread).</summary>
+    public Task DownloadAsync(string remotePath, Stream destination, Action<long> progress) => Task.Run(() =>
+        Client.DownloadFile(remotePath, destination, done => progress((long)done)));
+
     public void Dispose() => Disconnect();
 
     // ---- remote path helpers ----

@@ -69,7 +69,7 @@
                 Margin="8,0,0,0" MinHeight="40" />
       </Grid>
 
-      <!-- folder contents: tap a folder to open it -->
+      <!-- folder contents: tap a folder to open it, tap a file to select it for download -->
       <ListBox Grid.Row="3"
                ItemsSource="{Binding Entries}"
                SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
@@ -89,24 +89,39 @@
         </ListBox.ItemTemplate>
       </ListBox>
 
-      <!-- upload area -->
+      <!-- download + upload area -->
       <StackPanel Grid.Row="4" Spacing="8" Margin="0,10,0,0">
-        <Button Content="Select files..."
-                Click="OnPickFiles"
+
+        <!-- download the selected file -->
+        <Button Click="OnDownload"
+                IsEnabled="{Binding CanDownload}"
                 HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"
-                Height="46" />
+                Height="46">
+          <TextBlock Text="{Binding DownloadText}" TextTrimming="CharacterEllipsis" />
+        </Button>
+
+        <Border Height="1" Opacity="0.25" Background="Gray" Margin="0,4" />
+
+        <!-- send files to the server -->
+        <Grid ColumnDefinitions="*,*">
+          <Button Content="Select files..."
+                  Click="OnPickFiles"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  Height="46" />
+          <Button Grid.Column="1" Content="Upload"
+                  Command="{Binding UploadCommand}"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  Height="46"
+                  Margin="8,0,0,0" />
+        </Grid>
 
         <TextBlock Text="{Binding SelectedFilesText}" TextWrapping="Wrap" />
 
-        <CheckBox Content="Overwrite files that already exist"
+        <CheckBox Content="Overwrite files that already exist on the server"
                   IsChecked="{Binding Overwrite}" />
-
-        <Button Content="Upload"
-                Command="{Binding UploadCommand}"
-                HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center"
-                Height="48" />
 
         <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" Height="14" />
         <TextBlock Text="{Binding ProgressText}" FontSize="12" />

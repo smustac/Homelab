@@ -47,4 +47,23 @@ public partial class MainView : UserControl
 
         vm.SetFiles(list);
     }
+
+    // Asks where to save (Android's "save to..." screen on the phone), then downloads the selected file.
+    private async void OnDownload(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel vm) return;
+        if (vm.SelectedEntry is not { IsDirectory: false } entry) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is null) return;
+
+        var destination = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save file",
+            SuggestedFileName = entry.Name
+        });
+        if (destination is null) return;
+
+        await vm.DownloadAsync(entry, () => destination.OpenWriteAsync());
+    }
 }
