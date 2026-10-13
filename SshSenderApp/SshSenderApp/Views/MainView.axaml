@@ -1,0 +1,118 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SshSenderApp.ViewModels"
+             xmlns:svc="using:SshSenderApp.Services"
+             x:Class="SshSenderApp.Views.MainView"
+             x:DataType="vm:MainViewModel">
+
+  <Grid>
+
+    <!-- ================= LOGIN SCREEN ================= -->
+    <ScrollViewer IsVisible="{Binding IsNotConnected}">
+      <StackPanel Margin="20" Spacing="8" MaxWidth="480">
+
+        <TextBlock Text="SSH Sender" FontSize="28" FontWeight="Bold" Margin="0,16,0,8" />
+
+        <TextBlock Text="Host / IP address" />
+        <TextBox Text="{Binding Host}" FontSize="16" />
+
+        <TextBlock Text="Port" Margin="0,6,0,0" />
+        <TextBox Text="{Binding Port}" FontSize="16" />
+
+        <TextBlock Text="Username" Margin="0,6,0,0" />
+        <TextBox Text="{Binding Username}" FontSize="16" />
+
+        <TextBlock Text="Password" Margin="0,6,0,0" />
+        <TextBox Text="{Binding Password}" PasswordChar="●" FontSize="16" />
+
+        <Button Content="Connect"
+                Command="{Binding ConnectCommand}"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Height="48"
+                Margin="0,14,0,0" />
+
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,0" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ================= CONNECTED SCREEN ================= -->
+    <Grid IsVisible="{Binding IsConnected}"
+          RowDefinitions="Auto,Auto,Auto,*,Auto"
+          Margin="12">
+
+      <!-- header -->
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+        <TextBlock Text="{Binding ConnectionTitle}"
+                   FontSize="18" FontWeight="SemiBold"
+                   VerticalAlignment="Center"
+                   TextTrimming="CharacterEllipsis" />
+        <Button Grid.Column="1" Content="Disconnect"
+                Command="{Binding DisconnectCommand}" />
+      </Grid>
+
+      <!-- current folder + Up / Refresh -->
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+        <Button Content="⬆ Up" Command="{Binding UpCommand}" MinHeight="40" />
+        <TextBlock Grid.Column="1" Text="{Binding CurrentDir}"
+                   VerticalAlignment="Center" Margin="12,0"
+                   TextTrimming="CharacterEllipsis" />
+        <Button Grid.Column="2" Content="⟳ Refresh"
+                Command="{Binding RefreshCommand}" MinHeight="40" />
+      </Grid>
+
+      <!-- new folder -->
+      <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+        <TextBox Text="{Binding NewFolderName}" FontSize="15" />
+        <Button Grid.Column="1" Content="New folder"
+                Command="{Binding CreateFolderCommand}"
+                Margin="8,0,0,0" MinHeight="40" />
+      </Grid>
+
+      <!-- folder contents: tap a folder to open it -->
+      <ListBox Grid.Row="3"
+               ItemsSource="{Binding Entries}"
+               SelectedItem="{Binding SelectedEntry, Mode=TwoWay}"
+               IsEnabled="{Binding IsNotBusy}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="svc:RemoteEntry">
+            <Grid ColumnDefinitions="Auto,*" Margin="0,8">
+              <TextBlock Text="{Binding Icon}" FontSize="24"
+                         VerticalAlignment="Center" Margin="0,0,12,0" />
+              <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" FontSize="16"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Details}" FontSize="12" Opacity="0.6" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- upload area -->
+      <StackPanel Grid.Row="4" Spacing="8" Margin="0,10,0,0">
+        <Button Content="Select files..."
+                Click="OnPickFiles"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Height="46" />
+
+        <TextBlock Text="{Binding SelectedFilesText}" TextWrapping="Wrap" />
+
+        <CheckBox Content="Overwrite files that already exist"
+                  IsChecked="{Binding Overwrite}" />
+
+        <Button Content="Upload"
+                Command="{Binding UploadCommand}"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Height="48" />
+
+        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress}" Height="14" />
+        <TextBlock Text="{Binding ProgressText}" FontSize="12" />
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" />
+      </StackPanel>
+    </Grid>
+
+  </Grid>
+</UserControl>

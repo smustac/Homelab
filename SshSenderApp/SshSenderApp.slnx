@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="SshSenderApp.Android/SshSenderApp.Android.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="SshSenderApp.Desktop/SshSenderApp.Desktop.csproj" />
+  <Project Path="SshSenderApp/SshSenderApp.csproj" />
+</Solution>

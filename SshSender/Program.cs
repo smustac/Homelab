@@ -3,8 +3,8 @@ using Renci.SshNet;
 using Renci.SshNet.Common;
 
 // ====== EDIT THESE ======
-string host = "192.168.1.8";   // your laptop's IP
-string user = "smustac";       // your username on the laptop
+string host = " ? ";   // your laptop's IP
+string user = " ? ";       // your username on the laptop
 // ========================
 
 Console.Write($"Password for {user}@{host}: ");
