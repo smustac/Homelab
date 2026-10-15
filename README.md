@@ -100,6 +100,8 @@ The file was retrieved using "tailscale file get . " and appeared in the downloa
 I also tested all of the other paths but didnt feel the need to explain all of them since the concept is the same.
 Everything arrived properly proving that the server had perfect remote functionality.
 
+Later in the project i changed the actual Tailscale account to a new gmail that was made specifically for the Tailnet just so whenever i add another user into my Tailnet i dont actually give them my entire google login. That kinda defeates the whole security idea.
+
 
 <h1> Attacks </h1>
 
@@ -201,6 +203,67 @@ Another simple attack. Just an XSS payload in the URL.
 The Web3 sandbox for smart conracts also had an unprotected "/web3-sandbox" path.
 
 <img width="940" height="591" alt="image" src="https://github.com/user-attachments/assets/b5a95664-db2b-443d-8b9a-9afffae945e5" />
+
+<h1> Transfer app design </h1>
+
+I decided the method for sending files was a bit long, having to remember the commands and type out file names.
+To change that i created a custom app for file transfer between my server and any device connected to it.
+
+The app was made in Visual Studio in C#.
+
+First step was installing .NET SDK and the C# devkit.
+The server is running OpenSSH and i decided to leave the transfer on a password basis so i could setup user accounts on it later.
+
+For the file transfer i used SftpClient that runs over the same SSH connection already established.
+
+On the server i made /incoming to drop all the test files into.
+
+<img width="263" height="63" alt="image" src="https://github.com/user-attachments/assets/8d5bed28-a529-47f6-b783-89cfbde50491" />
+
+To make a simple app the easiest way was using WinForms GUI.
+All of the app files are in the Git repository.
+
+Except for common issues there was nothing too complex that required debugging.
+
+The first plan for a depoly was creating a deploy ".bat" file that actively clones into the Git repo and runs it.
+
+That idea was ultimatly scrapped because to run on other devices they would have to have Git and .NET installed so its not really flexible.
+
+And i just had no idea that creating a ".exe" file was as simple as it is. So i made the "SshSenderApp.exe" that ran it properLy. 
+
+<img width="581" height="503" alt="image" src="https://github.com/user-attachments/assets/c6ce4fbd-e2f7-41d2-9441-ccba94bea0f6" />
+
+<img width="1424" height="733" alt="image" src="https://github.com/user-attachments/assets/4314a90c-6a69-41eb-9652-1d7610557aaf" />
+
+
+<h2> Mobile adaptation </h2>
+
+I really wanted to run the app over any android device, and eventually IOS, so i used Avalonia Framework to make the enitre app cross-platform ready.
+
+Using the developer mode on my phone and adb pair/adb connect commands i managed to setup wireless debugging on my phone.
+This could have been avoided and made easier if i just had a data transfer cable on hand but i didnt.
+
+The app itself looks identical on the Android device. I tested it by using a device in a completely different city that was logged into my Tailnet.
+
+To make the ".apk" file i used the command "dotnet publish SshSenderApp.Android -c Release -p:AndroidPackageFormat=apk"
+
+I considered uploading to the PlayStore people i want to install it can access it more easily but that is a paid service so i decided not to.
+
+Delivering the ".apk" file to other users is a bit annoying as i need to use a large file transfer service because the Tailscale service refuses contact with Android devices, this problem i still havent uncovered as it works with IOS devices and any PC i use, not to mention it succesfully pings the the Android devices but still refuses to send files.
+
+But when the ".exe" is delivered and ran it works perfectly fine!
+
+Data can be uploaded, sent and dowloaded across platforms.
+
+<h1> User accounts </h1>
+
+If i plan to spread the app and server access to friends and family it is a good idea to add specific user accounts on the server.
+
+This is fairly simple with "sudo adduser <username>".
+
+<img width="586" height="60" alt="image" src="https://github.com/user-attachments/assets/868d43e6-d307-4f33-a456-d51ab7ee9e79" />
+
+Of course privlidges have to be managed otherwise all users have root access on the server. Not that i would allow anyone i dont trust to use my server but if others use it, being a bit less tech savy, a problem could arise so its best to prevent it altogether.
 
 
 
