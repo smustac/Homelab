@@ -229,7 +229,9 @@ The attcker then inputs the found credentials and gains entry.
 Here the the attacker can cause huge problems:
 
 -Findings DBs
+
 -Finding table names
+
 -Finding data from the tables
 
 <img width="455" height="141" alt="image" src="https://github.com/user-attachments/assets/4697e79c-b708-4def-b1ea-947665771488" />
