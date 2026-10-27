@@ -109,7 +109,7 @@ Here i will go over any current and future attacks that i attempt on the server.
 All attacks will be directed from a kali VM on my local PC.
 The point of the attacks is to serve as an actual test of the setup, whether they succeed or not if they are properly executed the test is valid and so are the results.
 
-<h2> Recon </h2>
+<h2> Recon - SSH </h2>
 
 I first nampped the server:
 
@@ -132,7 +132,7 @@ I then just ran a basic searchsploit command, this didnt provide any results as 
 
 <img width="372" height="80" alt="image" src="https://github.com/user-attachments/assets/62ab7f6a-0319-4e04-a29f-9e8c04afd9de" />
 
-<h2> SSH Brute-force </h2>
+<h3> SSH Brute-force </h3>
 
 I used the hydra tool on the Kali Vm to brute-force the server with rockyou.txt
 
@@ -144,7 +144,7 @@ Setting the username as "smustac", specifying the .txt file we want to pull from
 
 A properly set password proved to be too complex for this attack, which is exactly what was desired. 
 
-<h3> Defensive measure </h3>
+<h3> Defensive measure - SSh Brute-force </h3>
 
 Even though the attack was unsuccessfull its still not desired for these types of attacks to be allowed on the server.
 
@@ -177,7 +177,7 @@ To save me the effort later i opened the browser through BurpSuite to be able to
 
 <img width="957" height="695" alt="image" src="https://github.com/user-attachments/assets/22ed4b83-a299-408f-b0f1-a54a9655751f" />
 
-<h3> Attacks </h3>
+<h3> Attacks - OWASP Juice Shop </h3>
 
 The first attack i attempted was a basic SQL injection with " ' OR 1=1-- " which succeeded.
 I was then redirected to the Code Error detection page where i succesfully found the error and the fix to the problem.
@@ -203,6 +203,95 @@ Another simple attack. Just an XSS payload in the URL.
 The Web3 sandbox for smart conracts also had an unprotected "/web3-sandbox" path.
 
 <img width="940" height="591" alt="image" src="https://github.com/user-attachments/assets/b5a95664-db2b-443d-8b9a-9afffae945e5" />
+
+<h2> Recon - MySQL </h2>
+
+To attack the MySQL DB i nmapped my server.
+
+<img width="770" height="294" alt="image" src="https://github.com/user-attachments/assets/2b3875aa-4263-4eb2-8fc8-1ab01fadb4fe" />
+
+Nmap found the open 3306 port.
+
+<h3> MySQL Brute-force </h3>
+
+After the open port discovery Hydra found the weak credentials easily.
+
+<img width="854" height="304" alt="image" src="https://github.com/user-attachments/assets/a1ff22f4-89ee-4877-8e41-0f23208daf7e" />
+
+<h3> DB Manipulation </h3>
+
+When the attacker gets the credentials he can easily get in.
+The first login attempt threw a TLS/SSL error but that was bypassed with a simple "mysql -h 192.168.1.8 -u root -p --skip-ssl".
+The attcker then inputs the found credentials and gains entry.
+
+<img width="647" height="361" alt="image" src="https://github.com/user-attachments/assets/18c9ae8f-0f88-4c46-b953-1856836ac992" />
+
+Here the the attacker can cause huge problems:
+
+-Findings DBs
+-Finding table names
+-Finding data from the tables
+
+<img width="455" height="141" alt="image" src="https://github.com/user-attachments/assets/4697e79c-b708-4def-b1ea-947665771488" />
+
+-Creating backdoor users
+
+<img width="592" height="92" alt="image" src="https://github.com/user-attachments/assets/14d5ea74-95a6-4997-9be6-5f6f0df13edc" />
+
+<img width="671" height="211" alt="image" src="https://github.com/user-attachments/assets/23be0d4e-5972-46fa-aab7-c79c7a594160" />
+
+-Insert false data
+
+<img width="814" height="205" alt="image" src="https://github.com/user-attachments/assets/f29411d4-f47e-4b89-a74d-a41197f792aa" />
+
+-Create and drop tables
+
+<img width="515" height="214" alt="image" src="https://github.com/user-attachments/assets/aaa8665d-44d4-4664-9399-a7864bfa287d" />
+
+<img width="332" height="44" alt="image" src="https://github.com/user-attachments/assets/220f848a-b398-47f5-9b23-0f588de90f29" />
+
+
+Essentially the attacker gets completely unlimited access to the DB and its data.
+
+<h3> Defensive measures - MySQL </h3>
+
+First is setting up a proper password for the user that isnt guessable.
+Something along the lines of:
+
+"ALTER USER 'root'@'%' IDENTIFIED BY 'xK9#mP2$vL8nQ4wZ!rT6yU1c';"
+
+Not wordlistable.
+
+Then in order to avoid the Nmap scans i remade the DB.
+
+docker network create --internal backend-net
+
+docker run -d --name vuln-mysql \
+  --network backend-net \
+  -e MYSQL_ROOT_PASSWORD=xK9...randompassword \
+  mysql:8.0
+
+docker run -d --name webapp \
+  --network backend-net \
+  mywebapp
+
+No -p flag on the DB at all now. The web app container will reach it by container name (vuln-mysql acts as a hostname on that network), but the attacker cant reach on port 3306 at all. This removed Hydra’s entire angle of attack. It can’t brute-force a port it can’t connect to.
+
+Now there is no way to access it from outside so i will make a small web app container that can communicate with it.
+First i decided to created a limited privlidge user, i just wanted to get this out the way before building the web app.
+
+The limited privlidge user kinda functions as damage control. If the DB get SQL injected  it limits the amount of damage an attacker can do.
+
+To connect to the shell as root i needed to use "docker exec -it vuln-mysql mysql -u root -p".
+I recreated the structure. And created the user.
+
+<img width="674" height="328" alt="image" src="https://github.com/user-attachments/assets/1bf9350e-3235-47ff-b439-7aa58d36ff73" />
+
+After connecting as the new user i tested the privlidges.
+
+<img width="745" height="418" alt="image" src="https://github.com/user-attachments/assets/e55abb04-10e5-4af0-bdf1-0a1ce6ef4b4e" />
+
+Everything was properly protected.
 
 <h1> Transfer app design </h1>
 
@@ -264,6 +353,63 @@ This is fairly simple with "sudo adduser <username>".
 <img width="586" height="60" alt="image" src="https://github.com/user-attachments/assets/868d43e6-d307-4f33-a456-d51ab7ee9e79" />
 
 Of course privlidges have to be managed otherwise all users have root access on the server. Not that i would allow anyone i dont trust to use my server but if others use it, being a bit less tech savy, a problem could arise so its best to prevent it altogether.
+
+<h1> Wireshark traffic analysis </h1>
+
+Analysis covering a file upload to the server.
+
+<img width="1124" height="62" alt="image" src="https://github.com/user-attachments/assets/d4496ce8-b24c-4e1e-b98e-c097fd678161" />
+
+The traffic was isolated with the display filter "tcp.port == 65223". In the picture the first 4 frames caught the TCP handshake between the server and PC.  
+The SYN --> SYN, ACK --> ACK pretty much bolis down to 
+
+Server: "Can we talk?"
+Client: "Yes"
+Server: 'handshake done'
+
+<img width="1011" height="34" alt="image" src="https://github.com/user-attachments/assets/de416414-81e4-4949-8344-99cb8abd881a" />
+
+These are just version banners. Here we can see the Renci.SshNet, in other words the .NET library that my C# app uses.
+
+<img width="1190" height="208" alt="image" src="https://github.com/user-attachments/assets/60d28f69-75cf-4ced-a231-a46c64b54bd0" />
+
+This is the actual key exchange. Initialized by the server in line 18. This is the only phase that isnt encrypted so Wireshark can label it.
+
+<img width="989" height="494" alt="image" src="https://github.com/user-attachments/assets/be0b18ca-bef5-4a19-a406-113bf48e9647" />
+
+<img width="1188" height="208" alt="image" src="https://github.com/user-attachments/assets/f3196bdc-9467-4105-a3bb-aff7db4717ff" />
+
+This is the first of two encrypted bursts of data. This one is the authentication and opening of the transfer channel.
+
+<img width="1194" height="417" alt="image" src="https://github.com/user-attachments/assets/f1b5cc41-b418-4eb4-8815-916cad7857eb" />
+
+And this is the second burst which is the actual file transmission.
+
+<img width="974" height="117" alt="image" src="https://github.com/user-attachments/assets/a23eee44-55a0-4ae0-b452-96df204f505d" />
+
+This is the final disconnect. We see the FIN from both sides.
+
+Some packets had the "[TCP SPURIOUS RETRANSMISSION]" flag. This is most likely just a harmless capture artefact. The same packet got recorded twice or in a slightly different order.
+
+<h1> Database setup </h1>
+
+I set up a basic MySQL DB on the server using docker.
+
+<img width="669" height="386" alt="image" src="https://github.com/user-attachments/assets/261d43b6-832d-4f60-be19-bd2720f81704" />
+
+I ran the command to make the DB and just made a basic table with random data inside.
+
+<img width="712" height="499" alt="image" src="https://github.com/user-attachments/assets/ec637ed0-b2c5-41c0-a9bb-2ac67e568807" />
+
+
+
+
+
+
+
+
+
+
 
 
 
