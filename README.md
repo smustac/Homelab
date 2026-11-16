@@ -346,6 +346,69 @@ But when the ".exe" is delivered and ran it works perfectly fine!
 
 Data can be uploaded, sent and dowloaded across platforms.
 
+<h2> Remote updates </h2>
+
+Every time i changed something in the app i had to rebuild it and resend the ".exe" and ".apk" to every device.
+That got annoying fast so i decided the app should update itself from my server.
+
+On the server i installed nginx and made it serve a single folder, "/srv/updates", on port 8080.
+That folder only holds 3 files: the ".exe", the ".apk" and "version.json".
+
+The "version.json" file holds the newest version number and a SHA-256 checksum for both files.
+When the app starts it reads "http://<server>:8080/version.json" and compares that version with its own.
+If the server has a newer one an "Update available" box shows up on the login screen.
+
+On Windows the app downloads the new ".exe", verifies the checksum, swaps itself with the new file and restarts.
+On Android it downloads the ".apk" and opens the system installer. I still have to tap "Install" every time because Android doesnt allow silent installs outside of the PlayStore.
+
+To make releasing easier i rewrote "publish.bat".
+It asks for the new version number, builds both the ".exe" and the ".apk", writes "version.json" with the checksums and uploads everything to the server with scp.
+
+The first time i ran it i thought the script froze. It was just waiting for me to press Enter on the version number.
+
+<h3> Problems - Remote updates </h3>
+
+The first install of the new version still had to be done by hand, since the old app didnt have the updater in it yet.
+On my phone the ".apk" refused to open with "no app to open this with". The file had been downloaded twice and got a "(1)" in its name. After renaming it back to "SshSender.apk" it installed normally.
+
+Then the update check failed with "No route to host".
+nginx was running and "curl -i http://localhost:8080/version.json" on the server returned the file, but neither my PC nor my phone could reach it.
+
+The cause was firewalld again, the same firewall that locked me out of Cockpit.
+I first checked ufw which was inactive, so it took a while to realize that firewalld was the one dropping the port.
+
+I opened port 8080 only for my home network and my Tailnet:
+
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" port port="8080" protocol="tcp" accept'
+
+sudo firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="100.64.0.0/10" port port="8080" protocol="tcp" accept'
+
+sudo firewall-cmd --reload
+
+After that the check went through and reported that i already had the newest version.
+To test the whole thing i published version 1.0.2, the phone picked it up, downloaded it and installed it.
+
+<h3> Security - Remote updates </h3>
+
+The firewall rules only allow the update port from my LAN and my Tailnet.
+
+The updates themselves travel over plain HTTP. Over Tailscale that traffic is encrypted anyway and the checksum catches a damaged download.
+Android also refuses an ".apk" that is signed with a different key than the installed app.
+The Windows ".exe" doesnt have that protection, so HTTPS or a signed update is something to add later.
+
+The ".apk" is currently signed with the debug key from my PC. If that key gets lost the phones will refuse updates until the app is reinstalled, so making a proper keystore is on the list.
+
+<h2> App redesign </h2>
+
+The Avalonia app worked but looked pretty plain, so i gave it a new look.
+
+Everything now sits in rounded cards, the colors follow the light or dark mode of the device, folders and files got their own icons and the main buttons like "Connect" and "Upload" are highlighted.
+
+The layout is made phone first. On a phone it fills the screen, while on a tablet or PC it stays a centered column instead of stretching across the whole window.
+The progress bar and status text only show up when there is something to show, which leaves more room for the file list.
+
+The whole redesign is a single file, "MainView.axaml", so it can go out to all devices as a normal update through the update server.
+
 <h1> User accounts </h1>
 
 If i plan to spread the app and server access to friends and family it is a good idea to add specific user accounts on the server.
@@ -402,16 +465,3 @@ I set up a basic MySQL DB on the server using docker.
 I ran the command to make the DB and just made a basic table with random data inside.
 
 <img width="712" height="499" alt="image" src="https://github.com/user-attachments/assets/ec637ed0-b2c5-41c0-a9bb-2ac67e568807" />
-
-
-
-
-
-
-
-
-
-
-
-
-
