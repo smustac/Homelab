@@ -402,6 +402,8 @@ The ".apk" is currently signed with the debug key from my PC. If that key gets l
 
 The Avalonia app worked but looked pretty plain, so i gave it a new look.
 
+<img width="958" height="756" alt="image" src="https://github.com/user-attachments/assets/b0115ebe-b66a-4aa9-b071-f47157639a34" />
+
 Everything now sits in rounded cards, the colors follow the light or dark mode of the device, folders and files got their own icons and the main buttons like "Connect" and "Upload" are highlighted.
 
 The layout is made phone first. On a phone it fills the screen, while on a tablet or PC it stays a centered column instead of stretching across the whole window.
